@@ -1,0 +1,30 @@
+{
+  "name": "rest_api_express",
+  "version": "1.0.0",
+  "description": "REST Api Restaurants",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CamalichM/REST_API_Express.git"
+  },
+  "keywords": [
+    "node",
+    "js"
+  ],
+  "author": "CamalichM",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CamalichM/REST_API_Express/issues"
+  },
+  "homepage": "https://github.com/CamalichM/REST_API_Express#readme",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.2"
+  }
+}
