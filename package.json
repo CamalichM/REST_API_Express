@@ -22,7 +22,10 @@
   },
   "homepage": "https://github.com/CamalichM/REST_API_Express#readme",
   "dependencies": {
-    "express": "^4.19.2"
+    "csvtojson": "^2.0.10",
+    "express": "^4.19.2",
+    "geolib": "^3.3.4",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.2"
