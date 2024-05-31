@@ -3,13 +3,15 @@ import bodyParser from 'body-parser';
 import restaurantController from './controllers/restaurantController.js';
 import fs from 'fs';
 import csv from 'csvtojson';
-import { initializeDatabase } from './config/dbInitializer.js';
 
 const app = express();
 app.use(bodyParser.json());
 
 let converted = false;
 
+/**
+ * Converts CSV data to JSON and saves it to a file if the conversion has not been done before.
+ */
 const createData = () => {
     if (!converted && !fs.existsSync('./db.json')) {
         csv()
@@ -27,6 +29,7 @@ const createData = () => {
 };
 createData();
 
+// Initialize API
 app.get("/", (req, res) => {
 res.send('API has been initialized');
     });
@@ -39,6 +42,7 @@ app.post('/restaurants', restaurantController.createRestaurant);
 app.put('/restaurants/:id', restaurantController.updateRestaurant);
 app.delete('/restaurants/:id', restaurantController.deleteRestaurant);
 
+// Error handling middleware
 app.use((err, req, res, next) => {
   if (res.headersSent) {
       return next(err);
@@ -51,6 +55,7 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something went wrong!');
 });
 
+// Start the server
 app.listen(3000, () => {
     console.log('Server is running on http://localhost:3000');
 });
