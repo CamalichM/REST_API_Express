@@ -16,8 +16,6 @@ const getRestaurantById = (req, res) => {
     restaurantService.getRestaurantById(id, (err, restaurant) => {
         if (err) {
             res.status(500).send('Error retrieving restaurant');
-        } else if (!restaurant) {
-            res.status(404).send('Restaurant not found');
         } else {
             res.json(restaurant);
         }
@@ -31,31 +29,42 @@ const createRestaurant = (req, res) => {
             res.status(500).send('Error creating restaurant');
         } else {
             res.status(201).json(createdRestaurant);
+            console.log('Restaurant created successfully');
         }
     });
 };
 
-const updateRestaurant = (req, res) => {
+const updateRestaurant = (req, res, next) => {
     const { id } = req.params;
     const updatedData = req.body;
-    restaurantService.updateRestaurant(id, updatedData, (err, updatedRestaurant) => {
-        if (err) {
-            res.status(500).send('Error updating restaurant');
-        } else if (!updatedRestaurant) {
-            res.status(404).send('Restaurant not found');
-        } else {
-            res.json(updatedRestaurant);
-        }
-    });
+
+    const handleUpdate = () => {
+        restaurantService.updateRestaurant(id, updatedData, (err, updatedRestaurant) => {
+            if (err) {
+                return next(err);
+            }
+            return res.send('Restaurant updated successfully');
+        });
+    };
+
+    try {
+        handleUpdate();
+    } catch (error) {
+        console.error('Error processing request:', error);
+        // Puedes enviar una respuesta aquí si lo prefieres
+    }
 };
+
+
+
+
+
 
 const deleteRestaurant = (req, res) => {
     const { id } = req.params;
     restaurantService.deleteRestaurant(id, (err, isDeleted) => {
         if (err) {
             res.status(500).send('Error deleting restaurant');
-        } else if (!isDeleted) {
-            res.status(404).send('Restaurant not found');
         } else {
             res.status(204).send();
         }
@@ -89,6 +98,7 @@ const getStatistics = (req, res) => {
         res.status(404).send('No restaurants found within the specified radius');
     }
 };
+
 
 
 export default {

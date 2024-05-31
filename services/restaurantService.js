@@ -22,7 +22,7 @@ const deleteRestaurant = (id, callback) => {
 };
 
 export const getRestaurantsWithinRadius = (latitude, longitude, radius) => {
-    const restaurants = getAllRestaurants();
+    const restaurants = readData().restaurants;
     const restaurantsInRadius = restaurants.filter(restaurant => {
         const distance = getDistance(
             { latitude: parseFloat(latitude), longitude: parseFloat(longitude) },
@@ -32,5 +32,6 @@ export const getRestaurantsWithinRadius = (latitude, longitude, radius) => {
     });
     return restaurantsInRadius;
 };
+
 
 export default { getAllRestaurants, getRestaurantById, createRestaurant, updateRestaurant, deleteRestaurant, getRestaurantsWithinRadius };

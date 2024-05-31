@@ -2,45 +2,34 @@ import sqlite3 from 'sqlite3';
 import fs from 'fs';
 
 const initializeDatabase = () => {
-    const db = new sqlite3.Database(':memory:');
-
+    const db = new sqlite3.Database('./restaurantes.db');
     db.serialize(() => {
-        db.run(`CREATE TABLE Restaurants (
-            id TEXT PRIMARY KEY,
-            rating INTEGER CHECK(rating >= 0 AND rating <= 4),
-            name TEXT,
-            site TEXT,
-            email TEXT,
-            phone TEXT,
-            street TEXT,
-            city TEXT,
-            state TEXT,
-            lat FLOAT,
-            lng FLOAT
-        )`);
-
-        const jsonData = fs.readFileSync('./db.json');
-        const { restaurants } = JSON.parse(jsonData);
-        const stmt = db.prepare('INSERT INTO Restaurants VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        restaurants.forEach((restaurant) => {
-            stmt.run(
-                restaurant.id,
-                restaurant.rating,
-                restaurant.name,
-                restaurant.site,
-                restaurant.email,
-                restaurant.phone,
-                restaurant.street,
-                restaurant.city,
-                restaurant.state,
-                parseFloat(restaurant.lat),
-                parseFloat(restaurant.lng)
-            );
+        db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='Restaurants'", (err, row) => {
+            if (err) {
+                console.error('Error checking table existence:', err);
+                return;
+            }
+            if (!row) {
+                // La tabla no existe, así que la creamos
+                db.run(`CREATE TABLE Restaurants (
+                    id TEXT PRIMARY KEY,
+                    rating INTEGER CHECK(rating >= 0 AND rating <= 4),
+                    name TEXT,
+                    site TEXT,
+                    email TEXT,
+                    phone TEXT,
+                    street TEXT,
+                    city TEXT,
+                    state TEXT,
+                    lat FLOAT,
+                    lng FLOAT
+                )`);
+            }
         });
-        stmt.finalize();
     });
-
     return db;
 };
 
-export default initializeDatabase;
+export { initializeDatabase };
+
+

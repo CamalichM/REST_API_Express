@@ -1,4 +1,4 @@
-import initializeDatabase from '../config/dbInitializer.js';
+import { initializeDatabase } from '../config/dbInitializer.js';
 
 const db = initializeDatabase();
 
@@ -17,9 +17,26 @@ const createRestaurant = (restaurant, callback) => {
 };
 
 const updateRestaurant = (id, restaurant, callback) => {
-    const { rating, name, site, email, phone, street, city, state, lat, lng } = restaurant;
-    db.run('UPDATE Restaurants SET rating = ?, name = ?, site = ?, email = ?, phone = ?, street = ?, city = ?, state = ?, lat = ?, lng WHERE id = ?',
-        [rating, name, site, email, phone, street, city, state, lat, lng, id], callback);
+    let updateFields = [];
+    let updateValues = [];
+    Object.keys(restaurant).forEach(key => {
+        if (key !== 'id') {
+            let value = restaurant[key];
+            if (key === 'rating' && typeof value === 'number') {
+                value = Math.round(value);
+                if (value < 0 || value > 4) {
+                    const err = new Error('Rating must be between 0 and 4');
+                    return callback(err);
+                }
+            }
+            updateFields.push(`${key} = ?`);
+            updateValues.push(value);
+        }
+    });
+
+    updateValues.push(id);
+    const updateQuery = `UPDATE Restaurants SET ${updateFields.join(', ')} WHERE id = ?`;
+    db.run(updateQuery, updateValues, callback);
 };
 
 const deleteRestaurant = (id, callback) => {
