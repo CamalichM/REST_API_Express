@@ -46,6 +46,7 @@ CREATE TABLE Restaurants (
     lat FLOAT,
     lng FLOAT
 );
+```
 
 ### Deployment
 
