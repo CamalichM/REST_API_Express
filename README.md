@@ -16,7 +16,9 @@ This project is a REST API built using Node.js and Express to manage restaurant 
 - Node.js
 - Express
 - SQLite (for database)
-- Postman (for testing)
+- Postman and Nodemon (for testing)
+- csvtojson
+- Geolib for spatial inquiries
 
 ## Installation
 1. Clone the repository: `git clone https://github.com/CamalichM/REST_API_Express.git`
@@ -49,10 +51,10 @@ CREATE TABLE Restaurants (
 ```
 
 ### Deployment
-
+https://restaurant-rest-api.onrender.com
 
 ### Postman Collection
-You can test the API using the following Postman Collection:
+You can test the API asking for permission to the Postman Collection. DM for more information.
 
 ### Bonus Points
 - Git was used for version control with clear commit messages and branching strategy.
