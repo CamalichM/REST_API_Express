@@ -1,5 +1,4 @@
 import restaurantService from '../services/restaurantService.js';
-import { getDistance } from 'geolib';
 
 const getAllRestaurants = (req, res) => {
     restaurantService.getAllRestaurants((err, restaurants) => {
@@ -37,27 +36,13 @@ const createRestaurant = (req, res) => {
 const updateRestaurant = (req, res, next) => {
     const { id } = req.params;
     const updatedData = req.body;
-
-    const handleUpdate = () => {
-        restaurantService.updateRestaurant(id, updatedData, (err, updatedRestaurant) => {
-            if (err) {
-                return next(err);
-            }
-            return res.send('Restaurant updated successfully');
-        });
-    };
-
-    try {
-        handleUpdate();
-    } catch (error) {
-        console.error('Error processing request:', error);
-        // Puedes enviar una respuesta aquí si lo prefieres
-    }
+    restaurantService.updateRestaurant(id, updatedData, (err, updatedRestaurant) => {
+        if (err) {
+            return next(err);
+        }
+        return res.send('Restaurant updated successfully');
+    });
 };
-
-
-
-
 
 
 const deleteRestaurant = (req, res) => {
@@ -73,31 +58,54 @@ const deleteRestaurant = (req, res) => {
 
 const getStatistics = (req, res) => {
     const { latitude, longitude, radius } = req.query;
-    const restaurants = readData().restaurants;
+    console.log('Latitude:', latitude);
+    console.log('Longitude:', longitude);
+    console.log('Radius:', radius);
 
-    const restaurantsInRadius = restaurants.filter(restaurant => {
-        const distance = getDistance(
-            { latitude: parseFloat(latitude), longitude: parseFloat(longitude) },
-            { latitude: parseFloat(restaurant.lat), longitude: parseFloat(restaurant.lng) }
-        );
-        return distance <= parseFloat(radius);
-    });
+    const query = `
+        SELECT COUNT(*) AS count,
+               AVG(rating) AS avg,
+               IFNULL(SQRT(AVG(POWER(rating - AVG(rating), 2))), 0) AS std
+        FROM Restaurants
+        WHERE
+            (6371000 * acos(cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat)))) <= ?
+    `;
 
-    if (restaurantsInRadius.length > 0) {
-        const count = restaurantsInRadius.length;
-        const ratings = restaurantsInRadius.map(restaurant => parseFloat(restaurant.rating));
-        const avg = ratings.reduce((a, b) => a + b, 0) / count || 0;
-        const std = Math.sqrt(ratings.map(x => Math.pow(x - avg, 2)).reduce((a, b) => a + b, 0) / count) || 0;
+    const params = [latitude, longitude, latitude, radius];
+
+    db.get(query, params, (err, result) => {
+        if (err) {
+            console.error('Error retrieving statistics:', err);
+            res.status(500).send('Error retrieving statistics');
+            return;
+        }
 
         res.json({
-            count,
-            avg,
-            std
+            count: result.count || 0,
+            avg: result.avg || 0,
+            std: result.std || 0
         });
-    } else {
-        res.status(404).send('No restaurants found within the specified radius');
-    }
+    });
 };
+
+
+
+
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3; 
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c;
+    return d;
+};
+
 
 
 

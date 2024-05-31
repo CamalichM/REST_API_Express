@@ -61,9 +61,15 @@ app.use((err, req, res, next) => {
   if (res.headersSent) {
       return next(err);
   }
+
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+      return res.status(400).send({ error: 'Invalid JSON' });
+  }
   console.error(err.stack);
-  res.status(500).send('Something broke!');
+  res.status(500).send('Something went wrong!');
 });
+
+
 
 app.listen(3000, () => {
     console.log('Server is running on http://localhost:3000');
