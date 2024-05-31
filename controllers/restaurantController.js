@@ -1,6 +1,7 @@
 import restaurantService from '../services/restaurantService.js';
 
 const getAllRestaurants = (req, res) => {
+    console.log('Si llegó al controlador de restaurantes');
     restaurantService.getAllRestaurants((err, restaurants) => {
         if (err) {
             res.status(500).send('Error retrieving restaurants');
@@ -56,57 +57,27 @@ const deleteRestaurant = (req, res) => {
     });
 };
 
-const getStatistics = (req, res) => {
+const getStatistics = async (req, res, next) => {
     const { latitude, longitude, radius } = req.query;
-    console.log('Latitude:', latitude);
-    console.log('Longitude:', longitude);
-    console.log('Radius:', radius);
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    const rad = parseFloat(radius);
 
-    const query = `
-        SELECT COUNT(*) AS count,
-               AVG(rating) AS avg,
-               IFNULL(SQRT(AVG(POWER(rating - AVG(rating), 2))), 0) AS std
-        FROM Restaurants
-        WHERE
-            (6371000 * acos(cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat)))) <= ?
-    `;
+    if (isNaN(lat) || isNaN(lng) || isNaN(rad) || rad <= 0) {
+        return res.status(400).json({ error: 'Invalid parameters' });
+    }
 
-    const params = [latitude, longitude, latitude, radius];
-
-    db.get(query, params, (err, result) => {
-        if (err) {
-            console.error('Error retrieving statistics:', err);
-            res.status(500).send('Error retrieving statistics');
-            return;
-        }
-
-        res.json({
-            count: result.count || 0,
-            avg: result.avg || 0,
-            std: result.std || 0
+    try {
+        restaurantService.getStatistics(lat, lng, rad, (err, { count, avg, std }) => {
+            if (err) {
+                return res.status(500).json({ error: 'Error getting statistics' });
+            }
+            res.json({ count, avg, std });
         });
-    });
+    } catch (err) {
+        next(err);
+    }
 };
-
-
-
-
-const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371e3; 
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const d = R * c;
-    return d;
-};
-
-
 
 
 export default {
@@ -115,5 +86,5 @@ export default {
     createRestaurant,
     updateRestaurant,
     deleteRestaurant,
-    getStatistics
+    getStatistics,
 };

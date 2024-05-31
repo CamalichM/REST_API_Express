@@ -20,18 +20,30 @@ const updateRestaurant = (id, restaurant, callback) => {
 const deleteRestaurant = (id, callback) => {
     restaurantModel.deleteRestaurant(id, callback);
 };
+const getStatistics = (latitude, longitude, radius, callback) => {
+    restaurantModel.getAllRestaurants((err, restaurants) => {
+        if (err) {
+            return callback(err);
+        }
 
-export const getRestaurantsWithinRadius = (latitude, longitude, radius) => {
-    const restaurants = readData().restaurants;
-    const restaurantsInRadius = restaurants.filter(restaurant => {
-        const distance = getDistance(
-            { latitude: parseFloat(latitude), longitude: parseFloat(longitude) },
-            { latitude: parseFloat(restaurant.lat), longitude: parseFloat(restaurant.lng) }
-        );
-        return distance <= parseFloat(radius);
+        const filteredRestaurants = restaurants.filter(restaurant => {
+            const distance = getDistance(
+                { latitude: parseFloat(latitude), longitude: parseFloat(longitude) },
+                { latitude: parseFloat(restaurant.lat), longitude: parseFloat(restaurant.lng) }
+            );
+            return distance <= parseFloat(radius);
+        });
+
+        const count = filteredRestaurants.length;
+        const ratings = filteredRestaurants.map(restaurant => parseFloat(restaurant.rating));
+        const avg = count > 0 ? ratings.reduce((a, b) => a + b, 0) / count : 0;
+        const std = count > 0 ? Math.sqrt(ratings.map(x => Math.pow(x - avg, 2)).reduce((a, b) => a + b, 0) / count) : 0;
+
+        callback(null, { count, avg, std });
     });
-    return restaurantsInRadius;
 };
 
 
-export default { getAllRestaurants, getRestaurantById, createRestaurant, updateRestaurant, deleteRestaurant, getRestaurantsWithinRadius };
+
+
+export default { getAllRestaurants, getRestaurantById, createRestaurant, updateRestaurant, deleteRestaurant, getStatistics };
